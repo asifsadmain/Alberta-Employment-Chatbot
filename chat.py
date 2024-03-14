@@ -15,4 +15,14 @@ documents_path = "./documents"
 llm = OpenAI(model="gpt-3.5-turbo")
 service_context = ServiceContext.from_defaults(llm=llm)
 
-
+@st.cache_resource(show_spinner=False)
+def initialize(): 
+    if not os.path.exists(storage_path):
+        documents = SimpleDirectoryReader(documents_path).load_data()
+        index = VectorStoreIndex.from_documents(documents)
+        index.storage_context.persist(persist_dir=storage_path)
+    else:
+        storage_context = StorageContext.from_defaults(persist_dir=storage_path)
+        index = load_index_from_storage(storage_context)
+    return index
+index = initialize()
